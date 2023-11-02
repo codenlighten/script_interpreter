@@ -448,7 +448,7 @@
 				main.push(opcode);
 				// addevent listener click to pop off stack
 				opcodeOption.addEventListener("click", () => {
-					const opcode = document.getElementById(opcodeHex);
+					const opcode = document.getElementById(opcodeOption.id);
 					opcodeOption.remove();
 					main.pop();
 				});
