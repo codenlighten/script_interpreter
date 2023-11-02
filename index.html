@@ -344,14 +344,6 @@
 			<button id="addOpcode">Add Opcode</button>
 			<button id="clearStack">Clear Stack</button>
 		</div>
-		<div class="container" id="mainstack">
-			<h2>Stack</h2>
-			<div class="container" id="stack"></div>
-		</div>
-		<div class="container" id="altstack">
-			<h2>Alt Stack</h2>
-			<div class="container" id="altstack"></div>
-		</div>
 		<div class="container" id="executeStack">
 			<button id="execute">Execute</button>
 		</div>
@@ -360,6 +352,15 @@
 			<div class="container" id="executeOutput"></div>
 			<div class="evaluation"></div>
 		</div>
+		<div class="container" id="mainstack">
+			<h2>Stack</h2>
+			<div class="container" id="stack"></div>
+		</div>
+		<div class="container" id="altstack">
+			<h2>Alt Stack</h2>
+			<div class="container" id="altstack"></div>
+		</div>
+
 		<div class="container" id="copyright2023Codenlighten">
 			<p>&copy; Codenlighten 2023.</p>
 		</div>
@@ -464,7 +465,28 @@
 					addOpCode();
 				}
 			});
+			//listener on select change. add to stack
+			opcodesSelect.addEventListener("change", () => {
+				const opcode = opcodesSelect.value;
+				//check for null
+				if (opcode === "null") {
+					return;
+				}
+				const opcodeOption = document.createElement("option");
+				opcodeOption.innerHTML = opcode;
+				opcodeOption.value = opcode;
+				opcodeOption.id = opcode;
 
+				main.push(opcode);
+				// addevent listener click to pop off stack
+				opcodeOption.addEventListener("click", () => {
+					const opcode = document.getElementById(opcodeOption.id);
+					opcodeOption.remove();
+					main.pop();
+				});
+				stack.appendChild(opcodeOption);
+				opcodesSelect.value = "";
+			});
 			// execute event listener
 			const execute = document.getElementById("execute");
 			const executeOutputDiv = document.getElementById("executeOutputDiv");
