@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>BSV Script Interpreter</title>
+		<!-- bsv cdn unpkg -->
+		<script src="https://unpkg.com/bsv@1.5"></script>
+		<style>
+			* {
+				box-sizing: border-box;
+			}
+
+			body {
+				margin: 0;
+				padding: 0;
+				font-family: sans-serif;
+			}
+
+			.container {
+				width: 100%;
+				max-width: 1200px;
+				margin: 0 auto;
+				padding: 0 20px;
+			}
+
+			#header {
+				text-align: center;
+				padding: 20px 0;
+			}
+
+			#opcodeSelect {
+				display: flex;
+				justify-content: space-between;
+				align-items: center;
+				padding: 20px 0;
+			}
+
+			#opcodes {
+				width: 100%;
+				max-width: 300px;
+				height: 40px;
+				border: 1px solid #ccc;
+				border-radius: 5px;
+				padding: 0 10px;
+				font-size: 16px;
+			}
+
+			#manualOpCode {
+				width: 100%;
+				max-width: 300px;
+				height: 40px;
+				border: 1px solid #ccc;
+				border-radius: 5px;
+				padding: 0 10px;
+				font-size: 16px;
+			}
+
+			#addOpcode {
+				width: 100%;
+				max-width: 300px;
+				height: 40px;
+				border: 1px solid #ccc;
+				border-radius: 5px;
+				padding: 0 10px;
+				font-size: 16px;
+				cursor: pointer;
+			}
+
+			#clearStack {
+				width: 100%;
+				max-width: 300px;
+				height: 40px;
+				border: 1px solid #ccc;
+				border-radius: 5px;
+				padding: 0 10px;
+				font-size: 16px;
+				cursor: pointer;
+			}
+
+			#mainstack {
+				padding: 20px 0;
+			}
+
+			#mainstack h2 {
+				text-align: center;
+			}
+
+			#stack {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+				align-items: center;
+			}
+
+			#stack option {
+				width: 100%;
+				max-width: 300px;
+				height: 40px;
+				border: 1px solid #ccc;
+				border-radius: 5px;
+				padding: 0 10px;
+				font-size: 16px;
+				margin: 5px;
+				cursor: pointer;
+			}
+
+			#altstack {
+				padding: 20px 0;
+			}
+
+			#altstack h2 {
+				text-align: center;
+			}
+
+			#altstack {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+				align-items: center;
+			}
+
+			#altstack option {
+				width: 100%;
+				max-width: 300px;
+				height: 40px;
+				border: 1px solid #ccc;
+				border-radius: 5px;
+				padding: 0 10px;
+				font-size: 16px;
+				margin: 5px;
+				cursor: pointer;
+			}
+
+			#executeStack {
+				display: flex;
+				justify-content: center;
+				align-items: center;
+				padding: 20px 0;
+			}
+
+			#execute {
+				width: 100%;
+				max-width: 300px;
+				height: 40px;
+				border: 1px solid #ccc;
+				border-radius: 5px;
+				padding: 0 10px;
+				font-size: 16px;
+				cursor: pointer;
+			}
+
+			#executeOutputDiv {
+				padding: 20px 0;
+			}
+
+			#executeOutputDiv h2 {
+				text-align: center;
+			}
+
+			#executeOutput {
+				display: flex;
+				flex-wrap: wrap;
+				justify-content: center;
+				align-items: center;
+			}
+
+			#executeOutput option {
+				width: 100%;
+				max-width: 300px;
+				height: 40px;
+				border: 1px solid #ccc;
+				border-radius: 5px;
+				padding: 0 10px;
+				font-size: 16px;
+				margin: 5px;
+				cursor: pointer;
+			}
+
+			#executeOutputDiv p {
+				text-align: center;
+			}
+
+			#executeOutputDiv p a {
+				text-decoration: none;
+				color: #000;
+			}
+
+			#executeOutputDiv p a:hover {
+				text-decoration: underline;
+			}
+
+			#executeOutputDiv p a:visited {
+				color: #000;
+			}
+		</style>
+	</head>
+	<body>
+		<div class="container" id="header">
+			<h1>BSV Script Interpreter</h1>
+		</div>
+		<div class="container" id="opcodeSelect">
+			<!--BSV opcodes alphabetical order -->
+			<select name="opcodes" id="opcodes">
+				<option value="" id="null">Choose OpCode</option>
+				<option title="The input is made positive." value="OP_ABS" id="OP_ABS">
+					OP_ABS
+				</option>
+				<option title="a is added to b." value="OP_ADD" id="OP_ADD">
+					OP_ADD
+				</option>
+				<option value="OP_AND" id="OP_AND">OP_AND</option>
+				<option value="OP_BOOLAND" id="OP_BOOLAND">OP_BOOLAND</option>
+				<option value="OP_BOOLOR" id="OP_BOOLOR">OP_BOOLOR</option>
+				<option value="OP_CAT" id="OP_CAT">OP_CAT</option>
+				<option value="OP_CHECKLOCKTIMEVERIFY" id="OP_CHECKLOCKTIMEVERIFY">
+					OP_CHECKLOCKTIMEVERIFY
+				</option>
+				<option value="OP_CHECKMULTISIG" id="OP_CHECKMULTISIG">
+					OP_CHECKMULTISIG
+				</option>
+				<option value="OP_CHECKMULTISIGVERIFY" id="OP_CHECKMULTISIGVERIFY">
+					OP_CHECKMULTISIGVERIFY
+				</option>
+				<!-- <option value="OP_CHECKSEQUENCEVERIFY" id="OP_CHECKSEQUENCEVERIFY">
+				OP_CHECKSEQUENCEVERIFY
+			</option> -->
+				<option value="OP_CHECKSIG" id="OP_CHECKSIG">OP_CHECKSIG</option>
+				<option value="OP_CHECKSIGVERIFY" id="OP_CHECKSIGVERIFY">
+					OP_CHECKSIGVERIFY
+				</option>
+				<option value="OP_CODESEPARATOR" id="OP_CODESEPARATOR">
+					OP_CODESEPARATOR
+				</option>
+				<option value="OP_DEPTH" id="OP_DEPTH">OP_DEPTH</option>
+				<option value="OP_DIV" id="OP_DIV">OP_DIV</option>
+				<option value="OP_DROP" id="OP_DROP">OP_DROP</option>
+				<option value="OP_DUP" id="OP_DUP">OP_DUP</option>
+				<option value="OP_ELSE" id="OP_ELSE">OP_ELSE</option>
+				<option value="OP_ENDIF" id="OP_ENDIF">OP_ENDIF</option>
+				<option value="OP_EQUAL" id="OP_EQUAL">OP_EQUAL</option>
+				<option value="OP_EQUALVERIFY" id="OP_EQUALVERIFY">
+					OP_EQUALVERIFY
+				</option>
+				<option value="OP_FALSE" id="OP_FALSE">OP_FALSE</option>
+				<option value="OP_FROMALTSTACK" id="OP_FROMALTSTACK">
+					OP_FROMALTSTACK
+				</option>
+				<option value="OP_GREATERTHAN" id="OP_GREATERTHAN">
+					OP_GREATERTHAN
+				</option>
+				<option value="OP_GREATERTHANOREQUAL" id="OP_GREATERTHANOREQUAL">
+					OP_GREATERTHANOREQUAL
+				</option>
+				<option value="OP_HASH160" id="OP_HASH160">OP_HASH160</option>
+				<option value="OP_HASH256" id="OP_HASH256">OP_HASH256</option>
+				<option value="OP_IF" id="OP_IF">OP_IF</option>
+				<option value="OP_IFDUP" id="OP_IFDUP">OP_IFDUP</option>
+
+				<option value="OP_INVERT" id="OP_INVERT">OP_INVERT</option>
+				<option value="OP_LEFT" id="OP_LEFT">OP_LEFT</option>
+				<option value="OP_LESSTHAN" id="OP_LESSTHAN">OP_LESSTHAN</option>
+				<option value="OP_LESSTHANOREQUAL" id="OP_LESSTHANOREQUAL">
+					OP_LESSTHANOREQUAL
+				</option>
+				<option value="OP_LSHIFT" id="OP_LSHIFT">OP_LSHIFT</option>
+				<option value="OP_MAX" id="OP_MAX">OP_MAX</option>
+				<option value="OP_MIN" id="OP_MIN">OP_MIN</option>
+				<option value="OP_MOD" id="OP_MOD">OP_MOD</option>
+				<option value="OP_MUL" id="OP_MUL">OP_MUL</option>
+				<option value="OP_NEGATE" id="OP_NEGATE">OP_NEGATE</option>
+				<option value="OP_NIP" id="OP_NIP">OP_NIP</option>
+				<option value="OP_NOP" id="OP_NOP">OP_NOP</option>
+				<option value="OP_NOP1" id="OP_NOP1">OP_NOP1</option>
+				<option value="OP_NOP10" id="OP_NOP10">OP_NOP10</option>
+				<option value="OP_NOP2" id="OP_NOP2">OP_NOP2</option>
+				<option value="OP_NOP3" id="OP_NOP3">OP_NOP3</option>
+				<option value="OP_NOP4" id="OP_NOP4">OP_NOP4</option>
+				<option value="OP_NOP5" id="OP_NOP5">OP_NOP5</option>
+				<option value="OP_NOP6" id="OP_NOP6">OP_NOP6</option>
+				<option value="OP_NOP7" id="OP_NOP7">OP_NOP7</option>
+				<option value="OP_NOP8" id="OP_NOP8">OP_NOP8</option>
+				<option value="OP_NOP9" id="OP_NOP9">OP_NOP9</option>
+				<option value="OP_NOT" id="OP_NOT">OP_NOT</option>
+				<option value="OP_NOTIF" id="OP_NOTIF">OP_NOTIF</option>
+				<option value="OP_NUMEQUAL" id="OP_NUMEQUAL">OP_NUMEQUAL</option>
+				<option value="OP_NUMEQUALVERIFY" id="OP_NUMEQUALVERIFY">
+					OP_NUMEQUALVERIFY
+				</option>
+				<option value="OP_NUMNOTEQUAL" id="OP_NUMNOTEQUAL">
+					OP_NUMNOTEQUAL
+				</option>
+				<option value="OP_OR" id="OP_OR">OP_OR</option>
+				<option value="OP_OVER" id="OP_OVER">OP_OVER</option>
+				<option value="OP_PICK" id="OP_PICK">OP_PICK</option>
+				<!-- <option value="OP_PUBKEYHASH" id="OP_PUBKEYHASH">OP_PUBKEYHASH</option>
+			<option value="OP_PUBKEY" id="OP_PUBKEY">OP_PUBKEY</option> -->
+				<option value="OP_PUSHDATA1" id="OP_PUSHDATA1">OP_PUSHDATA1</option>
+				<option value="OP_PUSHDATA2" id="OP_PUSHDATA2">OP_PUSHDATA2</option>
+				<option value="OP_PUSHDATA4" id="OP_PUSHDATA4">OP_PUSHDATA4</option>
+				<!-- <option value="OP_RESERVED" id="OP_RESERVED">OP_RESERVED</option>
+			<option value="OP_RESERVED1" id="OP_RESERVED1">OP_RESERVED1</option>
+			<option value="OP_RESERVED2" id="OP_RESERVED2">OP_RESERVED2</option> -->
+				<option value="OP_RETURN" id="OP_RETURN">OP_RETURN</option>
+				<option value="OP_RIGHT" id="OP_RIGHT">OP_RIGHT</option>
+				<option value="OP_RIPEMD160" id="OP_RIPEMD160">OP_RIPEMD160</option>
+				<option value="OP_ROLL" id="OP_ROLL">OP_ROLL</option>
+				<option value="OP_ROT" id="OP_ROT">OP_ROT</option>
+				<option value="OP_RSHIFT" id="OP_RSHIFT">OP_RSHIFT</option>
+				<option value="OP_SHA1" id="OP_SHA1">OP_SHA1</option>
+				<option value="OP_SHA256" id="OP_SHA256">OP_SHA256</option>
+				<option value="OP_SIZE" id="OP_SIZE">OP_SIZE</option>
+				<option value="OP_SUB" id="OP_SUB">OP_SUB</option>
+				<option value="OP_SUBSTR" id="OP_SUBSTR">OP_SUBSTR</option>
+				<option value="OP_SWAP" id="OP_SWAP">OP_SWAP</option>
+				<option value="OP_TOALTSTACK" id="OP_TOALTSTACK">OP_TOALTSTACK</option>
+				<option value="OP_TRUE" id="OP_TRUE">OP_TRUE</option>
+				<option value="OP_TUCK" id="OP_TUCK">OP_TUCK</option>
+				<!-- <option value="OP_VER" id="OP_VER">OP_VER</option>
+			<option value="OP_VERIF" id="OP_VERIF">OP_VERIF</option> -->
+				<option value="OP_VERIFY" id="OP_VERIFY">OP_VERIFY</option>
+				<!-- <option value="OP_VERNOTIF" id="OP_VERNOTIF">OP_VERNOTIF</option> -->
+				<option value="OP_WITHIN" id="OP_WITHIN">OP_WITHIN</option>
+				<option value="OP_XOR" id="OP_XOR">OP_XOR</option>
+				<option value="OP_0" id="OP_0">OP_0</option>
+				<option value="OP_1" id="OP_1">OP_1</option>
+				<option value="OP_2" id="OP_2">OP_2</option>
+				<option value="OP_3" id="OP_3">OP_3</option>
+				<option value="OP_4" id="OP_4">OP_4</option>
+				<option value="OP_5" id="OP_5">OP_5</option>
+				<option value="OP_6" id="OP_6">OP_6</option>
+				<option value="OP_7" id="OP_7">OP_7</option>
+				<option value="OP_8" id="OP_8">OP_8</option>
+				<option value="OP_9" id="OP_9">OP_9</option>
+				<option value="OP_10" id="OP_10">OP_10</option>
+				<option value="OP_11" id="OP_11">OP_11</option>
+				<option value="OP_12" id="OP_12">OP_12</option>
+				<option value="OP_13" id="OP_13">OP_13</option>
+				<option value="OP_14" id="OP_14">OP_14</option>
+				<option value="OP_15" id="OP_15">OP_15</option>
+				<option value="OP_16" id="OP_16">OP_16</option>
+			</select>
+			<input type="text" placeholder="manually enter item" id="manualOpCode" />
+			<button id="addOpcode">Add Opcode</button>
+			<button id="clearStack">Clear Stack</button>
+		</div>
+		<div class="container" id="mainstack">
+			<h2>Stack</h2>
+			<div class="container" id="stack"></div>
+		</div>
+		<div class="container" id="altstack">
+			<h2>Alt Stack</h2>
+			<div class="container" id="altstack"></div>
+		</div>
+		<div class="container" id="executeStack">
+			<button id="execute">Execute</button>
+		</div>
+		<div class="container" id="executeOutputDiv">
+			<h2>Execute Output</h2>
+			<div class="container" id="executeOutput"></div>
+			<div class="evaluation"></div>
+		</div>
+		<div class="container" id="copyright2023Codenlighten">
+			<p>&copy; Codenlighten 2023.</p>
+		</div>
+		<script>
+			const opcodes = {};
+			const ScriptInterpreter = bsv.Script.Interpreter;
+			const Opcode = bsv.Opcode;
+
+			for (let i in Opcode.map) {
+				opcodes[Opcode.map[i]] = i;
+			}
+
+			// Function to convert a script into a human-readable format
+			const scriptToReadable = function (script) {
+				const s = new bsv.Script(script);
+				const chunks = s.chunks;
+				const result = [];
+				for (let i = 0; i < chunks.length; i++) {
+					const chunk = chunks[i];
+					if (chunk.buf) {
+						result.push(chunk.buf.toString("hex"));
+					} else {
+						result.push(opcodes[chunk.opcodenum]);
+					}
+				}
+				console.log(result);
+				return result.join(" ");
+			};
+
+			// Function to test a bsv locking script and inspect the result on the stack
+			const testAndInspectLockingScript = function (
+				lockingScript,
+				unlockingScript
+			) {
+				const si = new ScriptInterpreter();
+				const combinedScript = new bsv.Script(unlockingScript + lockingScript);
+
+				const isVerified = si.verify(
+					combinedScript,
+					new bsv.Script(),
+					new bsv.Transaction(),
+					0,
+					ScriptInterpreter.SCRIPT_VERIFY_P2SH
+				);
+				const stackState = si.stack.map((item) => item.toString("hex"));
+
+				return {
+					isVerified,
+					stackState,
+				};
+			};
+
+			// Sample usage:
+
+			const main = [];
+			const alt = [];
+
+			const opcodesSelect = document.getElementById("opcodes");
+			const addOpcode = document.getElementById("addOpcode");
+			const stack = document.getElementById("stack");
+			const altstack = document.getElementById("altstack");
+			const manualOpCode = document.getElementById("manualOpCode");
+			// addopcodeeventlistener
+
+			const addOpCode = async () => {
+				let opcode;
+				// if manual input is empty
+				if (!manualOpCode.value && !opcodesSelect.value) {
+					alert("Please enter an opcode");
+					return;
+				}
+				if (manualOpCode.value === "") {
+					opcode = opcodesSelect.value;
+				} else {
+					opcode = manualOpCode.value.toUpperCase();
+					if (!opcode.includes("OP_")) {
+						opcode = "OP_" + opcode;
+					}
+				}
+				// create opcode option
+				const opcodeOption = document.createElement("option");
+				opcodeOption.innerHTML = opcode;
+				opcodeOption.value = opcode;
+				opcodeOption.id = opcode;
+
+				main.push(opcode);
+				// addevent listener click to pop off stack
+				opcodeOption.addEventListener("click", () => {
+					const opcode = document.getElementById(opcodeHex);
+					opcodeOption.remove();
+					main.pop();
+				});
+				stack.appendChild(opcodeOption);
+				//clear input
+				manualOpCode.value = "";
+			};
+
+			// submit event listener
+			document.getElementById("addOpcode").addEventListener("click", addOpCode);
+			manualOpCode.addEventListener("keyup", (e) => {
+				if (e.keyCode === 13) {
+					addOpCode();
+				}
+			});
+
+			// execute event listener
+			const execute = document.getElementById("execute");
+			const executeOutputDiv = document.getElementById("executeOutputDiv");
+			execute.addEventListener("click", () => {
+				let lockingScript = main.join(" ");
+				let unlockingScript = alt.join(" ");
+				if (unlockingScript === "") {
+					unlockingScript = "";
+				}
+				const result = testAndInspectLockingScript(
+					lockingScript,
+					unlockingScript
+				);
+				console.log(
+					result.isVerified
+						? "The script evaluates as true!"
+						: "The script does not evaluate as true."
+				);
+				console.log("State of the stack after execution:", result.stackState);
+				executeOutputDiv.innerHTML = `<p>State of the stack after execution: ${result.stackState}</p>`;
+				// verified or not
+				if (result.isVerified) {
+					executeOutputDiv.innerHTML += "<p>Script evaluates as true!</p>";
+				} else {
+					executeOutputDiv.innerHTML +=
+						"<p>Script does not evaluate as true.</p>";
+				}
+			});
+
+			// clear stack event listener
+			const clearStack = document.getElementById("clearStack");
+			clearStack.addEventListener("click", () => {
+				main.length = 0;
+				alt.length = 0;
+				stack.innerHTML = "";
+				altstack.innerHTML = "";
+				executeOutputDiv.innerHTML = "";
+			});
+		</script>
+	</body>
+</html>
