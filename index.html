@@ -418,11 +418,16 @@
 				const vfExec = si.vfExec;
 				const altstack = si.altstack;
 				const stackState = si.stack.map((item) => item.toString("hex"));
+				const readableStackState = si.stack.map((item) =>
+					// convert hex to number
+					parseInt(item.toString("hex"), 16)
+				);
 				const altstackState = si.altstack.map((item) => item.toString("hex"));
 				console.log(si.altstack);
 				return {
 					isVerified,
 					stackState,
+					readableStackState,
 					altstackState,
 					altstack,
 					errstr,
@@ -534,6 +539,7 @@
 				const {
 					isVerified,
 					stackState,
+					readableStackState,
 					altstack,
 					errstr,
 					flags,
@@ -556,6 +562,7 @@
 				console.log("State of the stack after execution:", result.stackState);
 				console.log(result);
 				const stackDivHtml = `<p>State of the stack after execution: ${result.stackState}</p>`;
+				const asciiDivHtml = `<p>State of the stack after execution: ${result.readableStackState}</p>`;
 				const altstackDivHtml = `<p>State of the altstack after execution: ${result.altstackState}</p>`;
 				// const errstrDivHtml = `<p>Error string: ${result.errstr}</p>`;
 				// const flagsDivHtml = `<p>Flags: ${result.flags}</p>`;
@@ -565,7 +572,8 @@
 				// const pcDivHtml = `<p>Program counter: ${result.pc}</p>`;
 				// const satoshisBNDivHtml = `<p>Satoshis: ${result.satoshisBN}</p>`;
 				// const scriptDivHtml = `<p>Script: ${result.script}</p>`;
-				executeOutputDiv.innerHTML = stackDivHtml + altstackDivHtml;
+				executeOutputDiv.innerHTML =
+					stackDivHtml + asciiDivHtml + altstackDivHtml;
 
 				if (result.isVerified) {
 					executeOutputDiv.innerHTML += "<p>Script evaluates as true!</p>";
