@@ -397,7 +397,6 @@
 			) {
 				const si = new ScriptInterpreter();
 				const combinedScript = new bsv.Script(unlockingScript + lockingScript);
-
 				const isVerified = si.verify(
 					combinedScript,
 					new bsv.Script(),
@@ -405,11 +404,38 @@
 					0,
 					ScriptInterpreter.SCRIPT_VERIFY_P2SH
 				);
-				const stackState = si.stack.map((item) => item.toString("hex"));
 
+				const errstr = si.errstr;
+				const flags = si.flags;
+				const nOpCount = si.nOpCount;
+				const nin = si.nin;
+				const pbegincodehash = si.pbegincodehash;
+				const pc = si.pc;
+				const satoshisBN = si.satoshisBN;
+				const script = si.script;
+				const stack = si.stack;
+				const tx = si.tx;
+				const vfExec = si.vfExec;
+				const altstack = si.altstack;
+				const stackState = si.stack.map((item) => item.toString("hex"));
+				const altstackState = si.altstack.map((item) => item.toString("hex"));
+				console.log(si.altstack);
 				return {
 					isVerified,
 					stackState,
+					altstackState,
+					altstack,
+					errstr,
+					flags,
+					nOpCount,
+					nin,
+					pbegincodehash,
+					pc,
+					satoshisBN,
+					script,
+					stack,
+					tx,
+					vfExec,
 				};
 			};
 
@@ -462,6 +488,11 @@
 			document.getElementById("addOpcode").addEventListener("click", addOpCode);
 			manualOpCode.addEventListener("keyup", (e) => {
 				if (e.keyCode === 13) {
+					if (manualOpCode.value === "") {
+						// execute script
+						document.getElementById("execute").click();
+						return;
+					}
 					addOpCode();
 				}
 			});
@@ -500,14 +531,42 @@
 					lockingScript,
 					unlockingScript
 				);
+				const {
+					isVerified,
+					stackState,
+					altstack,
+					errstr,
+					flags,
+					nOpCount,
+					nin,
+					pbegincodehash,
+					pc,
+					satoshisBN,
+					script,
+					stack,
+					tx,
+					vfExec,
+				} = result;
+
 				console.log(
 					result.isVerified
 						? "The script evaluates as true!"
 						: "The script does not evaluate as true."
 				);
 				console.log("State of the stack after execution:", result.stackState);
-				executeOutputDiv.innerHTML = `<p>State of the stack after execution: ${result.stackState}</p>`;
-				// verified or not
+				console.log(result);
+				const stackDivHtml = `<p>State of the stack after execution: ${result.stackState}</p>`;
+				const altstackDivHtml = `<p>State of the altstack after execution: ${result.altstackState}</p>`;
+				// const errstrDivHtml = `<p>Error string: ${result.errstr}</p>`;
+				// const flagsDivHtml = `<p>Flags: ${result.flags}</p>`;
+				// const nOpCountDivHtml = `<p>Number of opcodes: ${result.nOpCount}</p>`;
+				// const ninDivHtml = `<p>Number of inputs: ${result.nin}</p>`;
+				// const pbegincodehashDivHtml = `<p>Begin code hash: ${result.pbegincodehash}</p>`;
+				// const pcDivHtml = `<p>Program counter: ${result.pc}</p>`;
+				// const satoshisBNDivHtml = `<p>Satoshis: ${result.satoshisBN}</p>`;
+				// const scriptDivHtml = `<p>Script: ${result.script}</p>`;
+				executeOutputDiv.innerHTML = stackDivHtml + altstackDivHtml;
+
 				if (result.isVerified) {
 					executeOutputDiv.innerHTML += "<p>Script evaluates as true!</p>";
 				} else {
